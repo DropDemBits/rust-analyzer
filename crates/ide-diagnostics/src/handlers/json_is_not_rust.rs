@@ -225,7 +225,7 @@ mod tests {
             }
 
             #[derive(Serialize)]
-            struct Struct1{ bar: f64, bay: i64, baz: (), r#box: bool, foo: String }
+            struct Struct1 { bar: f64, bay: i64, baz: (), r#box: bool, foo: String }
 
             "#,
         );
@@ -244,9 +244,9 @@ mod tests {
             }
             "#,
             r#"
-            struct Struct3{  }
-            struct Struct2{ kind: String, value: Struct3 }
-            struct Struct1{ bar: Struct2, foo: String }
+            struct Struct3 {  }
+            struct Struct2 { kind: String, value: Struct3 }
+            struct Struct1 { bar: Struct2, foo: String }
 
             "#,
         );
@@ -283,9 +283,9 @@ mod tests {
             use serde::Deserialize;
 
             #[derive(Serialize, Deserialize)]
-            struct Struct2{ x: i64, y: i64 }
+            struct Struct2 { x: i64, y: i64 }
             #[derive(Serialize, Deserialize)]
-            struct Struct1{ empty: Vec<_>, nested: Vec<Vec<Vec<i64>>>, of_object: Vec<Struct2>, of_string: Vec<String> }
+            struct Struct1 { empty: Vec<_>, nested: Vec<Vec<Vec<i64>>>, of_object: Vec<Struct2>, of_string: Vec<String> }
 
             "#,
         );

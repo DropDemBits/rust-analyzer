@@ -448,7 +448,7 @@ enum A { One(One) }"#,
         check_assist(
             extract_struct_from_enum_variant,
             "enum A { $0One { foo: u32, bar: u32 } }",
-            r#"struct One{ foo: u32, bar: u32 }
+            r#"struct One { foo: u32, bar: u32 }
 
 enum A { One(One) }"#,
         );
@@ -459,7 +459,7 @@ enum A { One(One) }"#,
         check_assist(
             extract_struct_from_enum_variant,
             "enum A { $0One { foo: u32 } }",
-            r#"struct One{ foo: u32 }
+            r#"struct One { foo: u32 }
 
 enum A { One(One) }"#,
         );
@@ -470,7 +470,7 @@ enum A { One(One) }"#,
         check_assist(
             extract_struct_from_enum_variant,
             r"enum En<T> { Var { a: T$0 } }",
-            r#"struct Var<T>{ a: T }
+            r#"struct Var<T> { a: T }
 
 enum En<T> { Var(Var<T>) }"#,
         );
@@ -483,7 +483,7 @@ enum En<T> { Var(Var<T>) }"#,
             r#"#[derive(Debug)]
 #[derive(Clone)]
 enum Enum { Variant{ field: u32$0 } }"#,
-            r#"#[derive(Debug)]#[derive(Clone)] struct Variant{ field: u32 }
+            r#"#[derive(Debug)]#[derive(Clone)] struct Variant { field: u32 }
 
 #[derive(Debug)]
 #[derive(Clone)]
@@ -502,7 +502,7 @@ enum Enum {
     }
 }"#,
             r#"
-struct Variant{
+struct Variant {
     field: u32
 }
 
@@ -526,7 +526,7 @@ mod indenting {
 }"#,
             r#"
 mod indenting {
-    struct Variant{
+    struct Variant {
         field: u32
     }
 
@@ -552,7 +552,7 @@ enum A {
     }
 }"#,
             r#"
-struct One{
+struct One {
     // leading comment
     /// doc comment
     #[an_attr]
@@ -584,7 +584,7 @@ enum A {
     }
 }"#,
             r#"
-struct One{
+struct One {
     // comment
     /// doc
     #[attr]
@@ -632,7 +632,7 @@ enum A {
 // other
 /// comment
 #[attr]
-struct One{
+struct One {
     a: u32
 }
 
@@ -673,7 +673,7 @@ enum A {
             extract_struct_from_enum_variant,
             "enum A { $0One{ a: u32, pub(crate) b: u32, pub(super) c: u32, d: u32 } }",
             r#"
-struct One{ a: u32, pub(crate) b: u32, pub(super) c: u32, d: u32 }
+struct One { a: u32, pub(crate) b: u32, pub(super) c: u32, d: u32 }
 
 enum A { One(One) }"#,
         );
@@ -734,7 +734,7 @@ pub enum A { One(One) }"#,
             extract_struct_from_enum_variant,
             "pub(in something) enum A { $0One{ a: u32, b: u32 } }",
             r#"
-pub(in something) struct One{ pub(in something) a: u32, pub(in something) b: u32 }
+pub(in something) struct One { pub(in something) a: u32, pub(in something) b: u32 }
 
 pub(in something) enum A { One(One) }"#,
         );
@@ -746,7 +746,7 @@ pub(in something) enum A { One(One) }"#,
             extract_struct_from_enum_variant,
             "pub(crate) enum A { $0One{ a: u32, b: u32, c: u32 } }",
             r#"
-pub(crate) struct One{ pub(crate) a: u32, pub(crate) b: u32, pub(crate) c: u32 }
+pub(crate) struct One { pub(crate) a: u32, pub(crate) b: u32, pub(crate) c: u32 }
 
 pub(crate) enum A { One(One) }"#,
         );
@@ -817,7 +817,7 @@ fn f() {
 }
 "#,
             r#"
-struct V{ i: i32, j: i32 }
+struct V { i: i32, j: i32 }
 
 enum E {
     V(V)
@@ -911,7 +911,7 @@ fn f() {
 "#,
             r#"
 //- /main.rs
-struct V{ i: i32, j: i32 }
+struct V { i: i32, j: i32 }
 
 enum E {
     V(V)
@@ -941,7 +941,7 @@ fn foo() {
 }
 "#,
             r#"
-struct One{ a: u32, b: u32 }
+struct One { a: u32, b: u32 }
 
 enum A { One(One) }
 
@@ -998,7 +998,7 @@ enum X<'a, 'b, 'x> {
 }
 "#,
             r#"
-struct A<'a, 'x>{ a: &'a &'x mut () }
+struct A<'a, 'x> { a: &'a &'x mut () }
 
 enum X<'a, 'b, 'x> {
     A(A<'a, 'x>),
@@ -1020,7 +1020,7 @@ enum X<'b, T, V, const C: usize> {
 }
 "#,
             r#"
-struct A<'b, T, const C: usize>{ a: T, b: X<'b>, c: [u8; C] }
+struct A<'b, T, const C: usize> { a: T, b: X<'b>, c: [u8; C] }
 
 enum X<'b, T, V, const C: usize> {
     A(A<'b, T, C>),
@@ -1042,7 +1042,7 @@ enum X<'a, 'b> {
 }
 "#,
             r#"
-struct C{ c: () }
+struct C { c: () }
 
 enum X<'a, 'b> {
     A { a: &'a () },
@@ -1064,7 +1064,7 @@ enum En<T: TraitT, V: TraitV> {
 }
 "#,
             r#"
-struct A<T: TraitT>{ a: T }
+struct A<T: TraitT> { a: T }
 
 enum En<T: TraitT, V: TraitV> {
     A(A<T>),

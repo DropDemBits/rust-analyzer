@@ -767,7 +767,7 @@ pub fn struct_(
 
     ast_from_text(&match field_list {
         ast::FieldList::RecordFieldList(record) => {
-            format!("{visibility}struct {name}{type_params}{record}")
+            format!("{visibility}struct {name}{type_params} {record}")
         }
         ast::FieldList::TupleFieldList(tuple) => {
             format!("{visibility}struct {name}{type_params}{tuple};")
