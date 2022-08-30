@@ -165,14 +165,8 @@ pub fn impl_(
     params: Option<ast::GenericParamList>,
     ty_params: Option<ast::GenericParamList>,
 ) -> ast::Impl {
-    let params = match params {
-        Some(params) => params.to_string(),
-        None => String::new(),
-    };
-    let ty_params = match ty_params {
-        Some(params) => params.to_string(),
-        None => String::new(),
-    };
+    let params = optional_node(params);
+    let ty_params = optional_node(ty_params);
     ast_from_text(&format!("impl{params} {ty}{ty_params} {{}}"))
 }
 
@@ -181,7 +175,7 @@ pub fn impl_trait(
     ty: ast::Path,
     ty_params: Option<ast::GenericParamList>,
 ) -> ast::Impl {
-    let ty_params = ty_params.map_or_else(String::new, |params| params.to_string());
+    let ty_params = optional_node(ty_params);
     ast_from_text(&format!("impl{ty_params} {trait_} for {ty}{ty_params} {{}}"))
 }
 
@@ -277,10 +271,7 @@ pub fn use_tree_list(use_trees: impl IntoIterator<Item = ast::UseTree>) -> ast::
 }
 
 pub fn use_(visibility: Option<ast::Visibility>, use_tree: ast::UseTree) -> ast::Use {
-    let visibility = match visibility {
-        None => String::new(),
-        Some(it) => format!("{it} "),
-    };
+    let visibility = optional_prefix(visibility);
     ast_from_text(&format!("{visibility}use {use_tree};"))
 }
 
@@ -311,10 +302,7 @@ pub fn record_field(
     name: ast::Name,
     ty: ast::Type,
 ) -> ast::RecordField {
-    let visibility = match visibility {
-        None => String::new(),
-        Some(it) => format!("{it} "),
-    };
+    let visibility = optional_prefix(visibility);
     ast_from_text(&format!("struct S {{ {visibility}{name}: {ty}, }}"))
 }
 
@@ -667,11 +655,8 @@ pub fn item_const(
     ty: ast::Type,
     expr: ast::Expr,
 ) -> ast::Const {
-    let visibility = match visibility {
-        None => String::new(),
-        Some(it) => format!("{it} "),
-    };
-    ast_from_text(&format!("{visibility} const {name}: {ty} = {expr};"))
+    let visibility = optional_prefix(visibility);
+    ast_from_text(&format!("{visibility}const {name}: {ty} = {expr};"))
 }
 
 pub fn param(pat: ast::Pat, ty: ast::Type) -> ast::Param {
@@ -700,10 +685,7 @@ pub fn param_list(
 }
 
 pub fn type_param(name: ast::Name, ty: Option<ast::TypeBoundList>) -> ast::TypeParam {
-    let bound = match ty {
-        Some(it) => format!(": {it}"),
-        None => String::new(),
-    };
+    let bound = ty.map_or_else(String::new, |it| format!(": {it}"));
     ast_from_text(&format!("fn f<{name}{bound}>() {{ }}"))
 }
 
@@ -739,10 +721,7 @@ pub fn record_field_list(
 }
 
 pub fn tuple_field(visibility: Option<ast::Visibility>, ty: ast::Type) -> ast::TupleField {
-    let visibility = match visibility {
-        None => String::new(),
-        Some(it) => format!("{it} "),
-    };
+    let visibility = optional_prefix(visibility);
     ast_from_text(&format!("struct f({visibility}{ty});"))
 }
 
@@ -759,47 +738,41 @@ pub fn variant(name: ast::Name, field_list: Option<ast::FieldList>) -> ast::Vari
 
 pub fn fn_(
     visibility: Option<ast::Visibility>,
-    fn_name: ast::Name,
+    name: ast::Name,
     type_params: Option<ast::GenericParamList>,
     params: ast::ParamList,
     body: ast::BlockExpr,
     ret_type: Option<ast::RetType>,
     is_async: bool,
 ) -> ast::Fn {
-    let type_params = match type_params {
-        Some(type_params) => format!("{type_params}"),
-        None => "".into(),
-    };
-    let ret_type = match ret_type {
-        Some(ret_type) => format!("{ret_type} "),
-        None => "".into(),
-    };
-    let visibility = match visibility {
-        None => String::new(),
-        Some(it) => format!("{it} "),
-    };
+    let visibility = optional_prefix(visibility);
+    let type_params = optional_node(type_params);
+    let ret_type = optional_suffix(ret_type);
 
     let async_literal = if is_async { "async " } else { "" };
 
     ast_from_text(&format!(
-        "{visibility}{async_literal}fn {fn_name}{type_params}{params} {ret_type}{body}",
+        "{visibility}{async_literal}fn {name}{type_params}{params}{ret_type} {body}",
     ))
 }
 
 pub fn struct_(
     visibility: Option<ast::Visibility>,
-    strukt_name: ast::Name,
+    name: ast::Name,
     generic_param_list: Option<ast::GenericParamList>,
     field_list: ast::FieldList,
 ) -> ast::Struct {
-    let semicolon = if matches!(field_list, ast::FieldList::TupleFieldList(_)) { ";" } else { "" };
-    let type_params = generic_param_list.map_or_else(String::new, |it| it.to_string());
-    let visibility = match visibility {
-        None => String::new(),
-        Some(it) => format!("{it} "),
-    };
+    let visibility = optional_prefix(visibility);
+    let type_params = optional_node(generic_param_list);
 
-    ast_from_text(&format!("{visibility}struct {strukt_name}{type_params}{field_list}{semicolon}",))
+    ast_from_text(&match field_list {
+        ast::FieldList::RecordFieldList(record) => {
+            format!("{visibility}struct {name}{type_params}{record}")
+        }
+        ast::FieldList::TupleFieldList(tuple) => {
+            format!("{visibility}struct {name}{type_params}{tuple};")
+        }
+    })
 }
 
 #[track_caller]
@@ -815,6 +788,21 @@ fn ast_from_text<N: AstNode>(text: &str) -> N {
     let node = node.clone_subtree();
     assert_eq!(node.syntax().text_range().start(), 0.into());
     node
+}
+
+/// Generates `{prefix} `, or an empty string if `None`
+fn optional_prefix(prefix: Option<impl std::fmt::Display>) -> String {
+    prefix.map_or_else(String::new, |it| format!("{it} "))
+}
+
+/// Generates ` {suffix}`, or an empty string if `None`
+fn optional_suffix(suffix: Option<impl std::fmt::Display>) -> String {
+    suffix.map_or_else(String::new, |it| format!(" {it}"))
+}
+
+/// Generates `{node}`, or an empty string if `None`
+fn optional_node(node: Option<impl std::fmt::Display>) -> String {
+    node.map_or_else(String::new, |it| it.to_string())
 }
 
 pub fn token(kind: SyntaxKind) -> SyntaxToken {
